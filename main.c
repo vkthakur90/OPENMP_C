@@ -19,7 +19,7 @@ static struct ProgramData data;
 void ProgramData_init(struct ProgramData * restrict data_ptr) 
 {
     data_ptr->size = MAX_DATA;
-    #pragma omp parallel for simd
+    #pragma omp parallel for 
     for (size_t idx = 0; idx < data_ptr->size; ++idx) 
     {
         data_ptr->num1[idx] = (float)((idx + 1) * 3);
@@ -29,7 +29,7 @@ void ProgramData_init(struct ProgramData * restrict data_ptr)
 
 void ProgramData_compute(struct ProgramData * restrict data_ptr) 
 {
-    #pragma omp parallel for simd
+    #pragma omp parallel for 
     for (size_t idx = 0; idx < data_ptr->size; ++idx) 
     {
         data_ptr->sum[idx]  = data_ptr->num1[idx] + data_ptr->num2[idx];
@@ -40,12 +40,9 @@ void ProgramData_compute(struct ProgramData * restrict data_ptr)
 
 int main() 
 {
-    size_t current_size;
-
     ProgramData_init(&data);
-    
-    
-    
+    ProgramData_compute(&data);
+      
     for (size_t idx = 0; idx < 10; ++idx) 
     {
         printf("%f\n", data.res[idx]);
