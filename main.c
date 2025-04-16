@@ -1,17 +1,23 @@
-#include <stdio.h>
-
 #ifndef MAX_DATA
-#define MAX_DATA 100000000
+#define MAX_DATA 1000
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
 
 struct ProgramData 
 { 
     size_t size;
-    float num1[MAX_DATA];
-    float num2[MAX_DATA];
-    float sum[MAX_DATA];
-    float diff[MAX_DATA];
-    float res[MAX_DATA];
+    struct {
+        float num1[MAX_DATA];
+        float num2[MAX_DATA];
+    } inputs;
+    struct {
+        float sum[MAX_DATA];
+        float diff[MAX_DATA];
+        float prod[MAX_DATA];
+        float ratio[MAX_DATA];
+    } outputs;
 };
 
 static struct ProgramData data;
@@ -19,34 +25,50 @@ static struct ProgramData data;
 void ProgramData_init(struct ProgramData * restrict data_ptr) 
 {
     data_ptr->size = MAX_DATA;
-    #pragma omp parallel for 
+    #pragma omp parallel for simd schedule(static)
     for (size_t idx = 0; idx < data_ptr->size; ++idx) 
     {
-        data_ptr->num1[idx] = (float)((idx + 1) * 3);
-        data_ptr->num2[idx] = (float)((idx + 1) * 2);
+        data_ptr->inputs.num1[idx] = (float)((idx + 1) * 3);
+        data_ptr->inputs.num2[idx] = (float)((idx + 1) * 2);
     }
 }
 
 void ProgramData_compute(struct ProgramData * restrict data_ptr) 
 {
-    #pragma omp parallel for 
+    #pragma omp parallel for simd schedule(static)
     for (size_t idx = 0; idx < data_ptr->size; ++idx) 
     {
-        data_ptr->sum[idx]  = data_ptr->num1[idx] + data_ptr->num2[idx];
-        data_ptr->diff[idx] = data_ptr->num1[idx] - data_ptr->num2[idx];
-        data_ptr->res[idx]  = data_ptr->sum[idx]  * data_ptr->diff[idx];
+        float a = data_ptr->inputs.num1[idx];
+        float b = data_ptr->inputs.num2[idx];
+
+        data_ptr->outputs.sum[idx]   = a + b;
+        data_ptr->outputs.diff[idx]  = a - b;
+        data_ptr->outputs.prod[idx]  = a * b;
+        data_ptr->outputs.ratio[idx] = (b != 0.0f) ? (a / b) : 0.0f;
+    }
+}
+
+void ProgramData_displayOutput(struct ProgramData * restrict data_ptr){
+    for (size_t idx = 0; idx < 50; ++idx) 
+    {
+        printf(
+            "%d\t%f\t%f\t\t%f\t%f\t%f\t%f\n",
+            idx,
+            data_ptr->inputs.num1[idx],
+            data_ptr->inputs.num2[idx],            
+            data_ptr->outputs.sum[idx], 
+            data_ptr->outputs.diff[idx],
+            data_ptr->outputs.prod[idx],
+            data_ptr->outputs.ratio[idx]
+        );
     }
 }
 
 int main() 
 {
     ProgramData_init(&data);
-    ProgramData_compute(&data);
-      
-    for (size_t idx = 0; idx < 10; ++idx) 
-    {
-        printf("%f\n", data.res[idx]);
-    }
+    ProgramData_compute(&data);    
+    ProgramData_displayOutput(&data);
 
-    return 0;
+    return EXIT_SUCCESS;
 }
