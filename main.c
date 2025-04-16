@@ -5,7 +5,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct ProgramData { 
+typedef struct _ProgramData ProgramData;
+
+void ProgramData_init(ProgramData * restrict data_ptr);
+void ProgramData_compute(ProgramData * restrict data_ptr);
+void ProgramData_displayOutput(ProgramData * restrict data_ptr);
+
+
+static ProgramData data;
+
+int main() {
+    ProgramData_init(&data);
+    ProgramData_compute(&data);    
+    ProgramData_displayOutput(&data);
+
+    return EXIT_SUCCESS;
+}
+
+struct _ProgramData { 
     size_t size;
     struct {
         float num1[MAX_DATA];
@@ -19,9 +36,7 @@ struct ProgramData {
     } outputs;
 };
 
-static struct ProgramData data;
-
-void ProgramData_init(struct ProgramData * restrict data_ptr) {
+void ProgramData_init(struct _ProgramData * restrict data_ptr) {
     data_ptr->size = MAX_DATA;
     
     #pragma omp parallel for simd schedule(static)
@@ -31,7 +46,7 @@ void ProgramData_init(struct ProgramData * restrict data_ptr) {
     }
 }
 
-void ProgramData_compute(struct ProgramData * restrict data_ptr) {
+void ProgramData_compute(struct _ProgramData * restrict data_ptr) {
     #pragma omp parallel for simd schedule(static)
     for (size_t idx = 0; idx < data_ptr->size; ++idx) {
         float a = data_ptr->inputs.num1[idx];
@@ -44,7 +59,7 @@ void ProgramData_compute(struct ProgramData * restrict data_ptr) {
     }
 }
 
-void ProgramData_displayOutput(struct ProgramData * restrict data_ptr){
+void ProgramData_displayOutput(struct _ProgramData * restrict data_ptr){
     
     for (size_t idx = 0; idx < 50; ++idx) {
         printf(
@@ -58,12 +73,4 @@ void ProgramData_displayOutput(struct ProgramData * restrict data_ptr){
             data_ptr->outputs.ratio[idx]
         );
     }
-}
-
-int main() {
-    ProgramData_init(&data);
-    ProgramData_compute(&data);    
-    ProgramData_displayOutput(&data);
-
-    return EXIT_SUCCESS;
 }
