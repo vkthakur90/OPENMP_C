@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct ProgramData 
-{ 
+struct ProgramData { 
     size_t size;
     struct {
         float num1[MAX_DATA];
@@ -22,22 +21,19 @@ struct ProgramData
 
 static struct ProgramData data;
 
-void ProgramData_init(struct ProgramData * restrict data_ptr) 
-{
+void ProgramData_init(struct ProgramData * restrict data_ptr) {
     data_ptr->size = MAX_DATA;
+    
     #pragma omp parallel for simd schedule(static)
-    for (size_t idx = 0; idx < data_ptr->size; ++idx) 
-    {
+    for (size_t idx = 0; idx < data_ptr->size; ++idx) {
         data_ptr->inputs.num1[idx] = (float)((idx + 1) * 3);
         data_ptr->inputs.num2[idx] = (float)((idx + 1) * 2);
     }
 }
 
-void ProgramData_compute(struct ProgramData * restrict data_ptr) 
-{
+void ProgramData_compute(struct ProgramData * restrict data_ptr) {
     #pragma omp parallel for simd schedule(static)
-    for (size_t idx = 0; idx < data_ptr->size; ++idx) 
-    {
+    for (size_t idx = 0; idx < data_ptr->size; ++idx) {
         float a = data_ptr->inputs.num1[idx];
         float b = data_ptr->inputs.num2[idx];
 
@@ -49,8 +45,8 @@ void ProgramData_compute(struct ProgramData * restrict data_ptr)
 }
 
 void ProgramData_displayOutput(struct ProgramData * restrict data_ptr){
-    for (size_t idx = 0; idx < 50; ++idx) 
-    {
+    
+    for (size_t idx = 0; idx < 50; ++idx) {
         printf(
             "%d\t%f\t%f\t\t%f\t%f\t%f\t%f\n",
             idx,
@@ -64,8 +60,7 @@ void ProgramData_displayOutput(struct ProgramData * restrict data_ptr){
     }
 }
 
-int main() 
-{
+int main() {
     ProgramData_init(&data);
     ProgramData_compute(&data);    
     ProgramData_displayOutput(&data);
